@@ -10,7 +10,6 @@ import (
 
 type Trip = util.Trip
 type FreeriderRoute = util.FreeriderRoute
-type RideDetails = util.RideDetails
 
 // FetchTrips Fetches all trips from Freerider API
 func FetchTrips() ([]Trip, error) {
@@ -31,6 +30,7 @@ func FetchTrips() ([]Trip, error) {
 		for _, trip := range route.Routes {
 
 			allTrips = append(allTrips, Trip{
+				RideID:    trip.ID,
 				From:      route.PickupLocationName,
 				To:        route.ReturnLocationName,
 				StartDate: formatDate(trip.AvailableAt),
