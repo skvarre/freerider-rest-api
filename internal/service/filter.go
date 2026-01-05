@@ -9,7 +9,7 @@ import (
 
 func FilterTrips(
 	trips []util.Trip,
-	origin, destination string,
+	origins, destinations []string,
 	startDate, endDate string,
 ) ([]util.Trip, error) {
 
@@ -19,8 +19,9 @@ func FilterTrips(
 		start, _ := time.Parse(util.TimeLayout, t.StartDate)
 		end, _ := time.Parse(util.TimeLayout, t.EndDate)
 
-		matchOrigin := origin == "" || strings.Contains(strings.ToLower(t.From), origin)
-		matchDest := destination == "" || strings.Contains(strings.ToLower(t.To), destination)
+		matchOrigin := matchLocation(origins, t.From)
+		matchDest := matchLocation(destinations, t.To)
+
 		matchDate := true
 
 		if startDate != "" {
@@ -39,6 +40,21 @@ func FilterTrips(
 	}
 
 	return filtered, nil
+}
+
+// Check if provided query location matches an existing destination or origin.
+// No provided location is seen as a match since it's considered as any location.
+func matchLocation(loc []string, queryLoc string) bool {
+	if !(len(loc) == 0) {
+		for _, d := range loc {
+			if strings.Contains(strings.ToLower(queryLoc), d) {
+				return true
+			}
+		}
+		return false
+	}
+
+	return true
 }
 
 // Allow flexible date formats based on time input or not.

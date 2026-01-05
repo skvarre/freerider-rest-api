@@ -15,10 +15,18 @@ func GetTrips(ctx *gin.Context) {
 		return
 	}
 
-	origin := strings.ToLower(ctx.Query("origin"))
-	dest := strings.ToLower(ctx.Query("destination"))
+	destinations := ctx.QueryArray("destination")
+	origins := ctx.QueryArray("origin")
 	startDate := ctx.Query("startDate")
 	endDate := ctx.Query("endDate")
+
+	for i, d := range destinations {
+		destinations[i] = strings.ToLower(d)
+	}
+
+	for i, d := range origins {
+		origins[i] = strings.ToLower(d)
+	}
 
 	trips, err := client.FetchTrips()
 	if err != nil {
@@ -26,7 +34,7 @@ func GetTrips(ctx *gin.Context) {
 		return
 	}
 
-	filtered, err := FilterTrips(trips, origin, dest, startDate, endDate)
+	filtered, err := FilterTrips(trips, origins, destinations, startDate, endDate)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
