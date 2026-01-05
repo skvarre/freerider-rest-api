@@ -1,9 +1,11 @@
 package service
 
 import (
+	"errors"
 	"freerider-rest-api/internal/client"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,14 +30,24 @@ func GetTrips(ctx *gin.Context) {
 		origins[i] = strings.ToLower(d)
 	}
 
+	// Fetch trips from Freerider API
 	trips, err := client.FetchTrips()
+
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	filtered, err := FilterTrips(trips, origins, destinations, startDate, endDate)
+
 	if err != nil {
+		var parseErr *time.ParseError
+
+		if errors.As(err, &parseErr) {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid date format: " + err.Error()})
+			return
+		}
+
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
