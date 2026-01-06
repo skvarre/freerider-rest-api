@@ -14,6 +14,11 @@ type FreeriderRoute struct {
 	Routes             []RideDetails `json:"routes"`
 }
 
+type FreeriderLocation struct {
+	// We only care about the name for now
+	Name string `json:"name"`
+}
+
 type Trip struct {
 	RideID        int    `json:"rideId"`
 	From          string `json:"from"`

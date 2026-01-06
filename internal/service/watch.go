@@ -3,6 +3,7 @@ package service
 import (
 	"freerider-rest-api/internal/client"
 	"freerider-rest-api/internal/util"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -10,82 +11,79 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// TODO: Use some kind of sqlite db or similar
-var watchList []util.Watcher
-
+// WatchTrips holds logic for POST /watch endpoint
 func WatchTrips(ctx *gin.Context) {
-	var newWatch util.Watcher
-	if err := ctx.ShouldBindJSON(&newWatch); err != nil {
+	var watcher util.Watcher
+	if err := ctx.ShouldBindJSON(&watcher); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// TODO: Handle ID better
-	newWatch.ID = time.Now().Format("150405")
-	watchList = append(watchList, newWatch)
-	ctx.JSON(http.StatusCreated, newWatch)
+	// Set headers for SSE
+	ctx.Header("Content-Type", "text/event-stream")
+	ctx.Header("Cache-Control", "no-cache")
+	ctx.Header("Connection", "keep-alive")
 
-	// Keep watch
-	go runBackgroundWorker()
-}
+	// Create a channel for this specific request
+	rideChan := make(chan util.Trip)
 
-func runBackgroundWorker() {
-	// TODO: Every 10 min for now, but should be irregular
-	log.Println("Starting background worker")
-	ticker := time.NewTicker(10 * time.Minute)
-	seenRides := make(map[int]bool)
-	defer ticker.Stop()
+	// Start the background checker (simplified for this example)
+	go func() {
+		log.Println("Starting background worker")
+		ticker := time.NewTicker(1 * time.Minute)
+		defer ticker.Stop()
+		seenRides := make(map[int]bool)
 
-	search(seenRides)
+		// Actual search logic
+		performSearch := func() {
+			log.Println("Performing search")
+			allTrips, _ := client.FetchTrips()
+			minDateStr := ""
+			maxDateStr := ""
 
-	for range ticker.C {
-		search(seenRides)
-	}
-}
+			if !watcher.MinDate.IsZero() {
+				minDateStr = watcher.MinDate.Format(util.TimeLayout)
+			}
 
-func search(seenRides map[int]bool) {
-	log.Println("Checking for watched rides")
-	allTrips, err := client.FetchTrips()
-	if err != nil {
-		log.Println("Error fetching trips: ", err)
-		return
-	}
+			if !watcher.MaxDate.IsZero() {
+				maxDateStr = watcher.MaxDate.Format(util.TimeLayout)
+			}
 
-	for _, watcher := range watchList {
-		minDateStr := ""
-		maxDateStr := ""
+			filtered, _ := FilterTrips(
+				allTrips,
+				[]string{watcher.Origin},
+				[]string{watcher.Destination},
+				minDateStr,
+				maxDateStr,
+			)
 
-		if !watcher.MinDate.IsZero() {
-			minDateStr = watcher.MinDate.Format(util.TimeLayout)
-		}
-
-		if !watcher.MaxDate.IsZero() {
-			maxDateStr = watcher.MaxDate.Format(util.TimeLayout)
-		}
-
-		filtered, err := FilterTrips(
-			allTrips,
-			[]string{watcher.Origin},
-			[]string{watcher.Destination},
-			minDateStr,
-			maxDateStr,
-		)
-
-		if err != nil {
-			log.Println("Error filtering trips: ", err)
-			continue
-		}
-
-		for _, trip := range filtered {
-			if !seenRides[trip.RideID] {
-				sendNotification(trip)
-				seenRides[trip.RideID] = true
+			for _, trip := range filtered {
+				if !seenRides[trip.RideID] {
+					log.Println("Found new ride!", trip.From, "to", trip.To)
+					rideChan <- trip
+					seenRides[trip.RideID] = true
+				}
 			}
 		}
-	}
-}
 
-// TODO: Send response
-func sendNotification(t util.Trip) {
-	log.Println("Found ride!", t.From, "to", t.To)
+		performSearch()
+
+		for {
+			select {
+			case <-ctx.Request.Context().Done():
+				return // Client disconnected
+			case <-ticker.C:
+				performSearch()
+			}
+		}
+	}()
+
+	// Stream the results to the caller
+	ctx.Stream(func(w io.Writer) bool {
+		if trip, ok := <-rideChan; ok {
+			ctx.SSEvent("ride-found", trip)
+			return true
+		}
+		return false
+	})
 }

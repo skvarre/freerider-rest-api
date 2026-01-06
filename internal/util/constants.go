@@ -5,3 +5,4 @@ const TimeZone = "Europe/Stockholm"
 
 // Transport routes for freerider
 const FreeriderURL = "https://www.hertzfreerider.se/api/transport-routes/?country=SWEDEN"
+const LocationsURL = "https://www.hertzfreerider.se/api/locations/"

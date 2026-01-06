@@ -12,7 +12,7 @@ func Start() {
 
 	r.GET("/trips", service.GetTrips)
 	r.POST("/watch", service.WatchTrips)
-	//r.GET("/locations")
+	r.GET("/locations", service.GetLocations)
 
 	log.Println("Server started on port 8080")
 	r.Run(":8080")

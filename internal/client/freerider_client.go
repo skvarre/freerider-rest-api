@@ -42,6 +42,27 @@ func FetchTrips() ([]Trip, error) {
 	return allTrips, nil
 }
 
+// FetchLocations fetches and simplifies the location list
+func FetchLocations() ([]string, error) {
+	resp, err := http.Get(util.LocationsURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var rawLocations []util.FreeriderLocation
+	if err := json.NewDecoder(resp.Body).Decode(&rawLocations); err != nil {
+		return nil, err
+	}
+
+	names := make([]string, len(rawLocations))
+	for i, loc := range rawLocations {
+		names[i] = loc.Name
+	}
+
+	return names, nil
+}
+
 func formatDate(date string) string {
 	location, _ := time.LoadLocation(util.TimeZone)
 
