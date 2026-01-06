@@ -27,10 +27,10 @@ func WatchTrips(ctx *gin.Context) {
 	// Create a channel for this specific request
 	rideChan := make(chan util.Trip)
 
-	// Start the background checker (simplified for this example)
+	// Start the background checker
 	go func() {
 		log.Println("Starting background worker")
-		ticker := time.NewTicker(1 * time.Minute)
+		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
 		seenRides := make(map[int]bool)
 
@@ -59,7 +59,6 @@ func WatchTrips(ctx *gin.Context) {
 
 			for _, trip := range filtered {
 				if !seenRides[trip.RideID] {
-					log.Println("Found new ride!", trip.From, "to", trip.To)
 					rideChan <- trip
 					seenRides[trip.RideID] = true
 				}
