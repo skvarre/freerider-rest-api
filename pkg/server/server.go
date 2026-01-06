@@ -1,7 +1,7 @@
 package server
 
 import (
-	"freerider-rest-api/internal/service"
+	"freerider-rest-api/pkg/service"
 	"log"
 
 	"github.com/gin-gonic/gin"

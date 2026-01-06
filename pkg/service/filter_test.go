@@ -1,7 +1,7 @@
 package service
 
 import (
-	"freerider-rest-api/internal/util"
+	"freerider-rest-api/pkg/util"
 	"testing"
 )
 

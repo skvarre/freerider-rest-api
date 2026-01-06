@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"freerider-rest-api/internal/util"
+	"freerider-rest-api/pkg/util"
 )
 
 // Filter trips based on provided query params

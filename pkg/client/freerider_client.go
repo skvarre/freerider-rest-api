@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"freerider-rest-api/internal/util"
+	"freerider-rest-api/pkg/util"
 )
 
 type Trip = util.Trip

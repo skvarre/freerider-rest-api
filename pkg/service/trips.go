@@ -2,7 +2,7 @@ package service
 
 import (
 	"errors"
-	"freerider-rest-api/internal/client"
+	"freerider-rest-api/pkg/client"
 	"net/http"
 	"strings"
 	"time"
