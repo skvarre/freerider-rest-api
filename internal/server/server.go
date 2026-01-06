@@ -14,6 +14,6 @@ func Start() {
 	r.POST("/watch", service.WatchTrips)
 	//r.GET("/locations")
 
-	r.Run(":8080")
 	log.Println("Server started on port 8080")
+	r.Run(":8080")
 }
