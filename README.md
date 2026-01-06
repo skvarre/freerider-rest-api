@@ -11,5 +11,15 @@ Filtering queries include searching for rides:
 - From several points to point B
 
 
+Queries: 
+
+origin(s): The starting point(s) of the ride.
+
+destination(s): The destination(s) of the ride.
+
+startDate: The earliest date and time of the ride.
+
+endDate: The latest date and time of the ride.
+
 
 Not intended for commercial use.

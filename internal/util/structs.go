@@ -15,11 +15,11 @@ type FreeriderRoute struct {
 }
 
 type Trip struct {
-	RideID    int    `json:"rideId"`
-	From      string `json:"from"`
-	To        string `json:"to"`
-	StartDate string `json:"startDate"`
-	EndDate   string `json:"endDate"`
+	RideID        int    `json:"rideId"`
+	From          string `json:"from"`
+	To            string `json:"to"`
+	AvailableFrom string `json:"availableFrom"`
+	Expires       string `json:"expires"`
 }
 type Watcher struct {
 	ID          string    `json:"id"`

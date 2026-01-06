@@ -17,8 +17,8 @@ func FilterTrips(
 	var filtered []util.Trip
 
 	for _, t := range trips {
-		start, _ := time.Parse(util.TimeLayout, t.StartDate)
-		end, _ := time.Parse(util.TimeLayout, t.EndDate)
+		start, _ := time.Parse(util.TimeLayout, t.AvailableFrom)
+		end, _ := time.Parse(util.TimeLayout, t.Expires)
 
 		// Filter trips based on provided query params
 		originMatch := matchLocation(origins, t.From)
@@ -52,30 +52,34 @@ func matchLocation(queryLocs []string, loc string) bool {
 	return true
 }
 
-// Check if provided query dates match the trip dates.
+// Check if provided query date window matches the trip dates.
 // No provided dates are seen as a match since it's considered as any date.
 func matchDate(queryStartDate, queryEndDate string, start, end time.Time) (bool, error) {
-	dateMatch := true
+	// Default to extreme values
+	searchStart := time.Time{}                 // Beginning of time
+	searchEnd := time.Now().AddDate(100, 0, 0) // Far future
 
+	// Parse query dates
 	if queryStartDate != "" {
-		sd, err := parseFlexTime(queryStartDate)
-		dateMatch = start.After(sd)
-
+		var err error
+		searchStart, err = parseFlexTime(queryStartDate)
 		if err != nil {
 			return false, err
 		}
 	}
 
 	if queryEndDate != "" {
-		ed, err := parseFlexTime(queryEndDate)
-		dateMatch = dateMatch && end.Before(ed)
-
+		var err error
+		searchEnd, err = parseFlexTime(queryEndDate)
 		if err != nil {
 			return false, err
 		}
 	}
 
-	return dateMatch, nil
+	isAvailableBeforeWindowEnds := start.Before(searchEnd) || start.Equal(searchEnd)
+	isNotExpiredBeforeWindowStarts := end.After(searchStart) || end.Equal(searchStart)
+
+	return isAvailableBeforeWindowEnds && isNotExpiredBeforeWindowStarts, nil
 }
 
 // Allow flexible date formats based on whether the time was provided as part of the query or not.

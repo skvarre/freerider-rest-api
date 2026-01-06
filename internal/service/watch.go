@@ -70,6 +70,5 @@ func runBackgroundWorker() {
 
 // TODO: Send response
 func sendNotification(t util.Trip) {
-	fmt.Println("Found ride from %s to %s", t.From, t.To)
-
+	fmt.Println("Found ride", t.From, "to", t.To)
 }

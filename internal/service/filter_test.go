@@ -7,8 +7,20 @@ import (
 
 func TestFilterTrips(t *testing.T) {
 	trips := []util.Trip{
-		{From: "Bollnäs & Self Service Kiosk", To: "Mora DT", StartDate: "2024-01-01T10:00:00", EndDate: "2024-01-01T16:00:00"},
-		{From: "Stockholm Arlanda Flygplats / Self Service Kiosk", To: "Karlskrona Ahlberg Bil / Self Service Kiosk", StartDate: "2024-02-01T10:00:00", EndDate: "2024-02-01T16:00:00"},
+		{
+			RideID:        1,
+			From:          "Bollnäs & Self Service Kiosk",
+			To:            "Mora DT",
+			AvailableFrom: "2024-01-01T10:00:00",
+			Expires:       "2024-01-01T16:00:00",
+		},
+		{
+			RideID:        2,
+			From:          "Stockholm Arlanda Flygplats / Self Service Kiosk",
+			To:            "Karlskrona Ahlberg Bil / Self Service Kiosk",
+			AvailableFrom: "2024-02-01T10:00:00",
+			Expires:       "2024-02-01T16:00:00",
+		},
 	}
 
 	tests := []struct {
@@ -43,6 +55,30 @@ func TestFilterTrips(t *testing.T) {
 			startDate:   "2023-12-31",
 			endDate:     "2024-01-02",
 			expectedLen: 1,
+		},
+		{
+			name:        "Filter by date window (Ride 1 is inside)",
+			startDate:   "2023-12-31",
+			endDate:     "2024-01-02",
+			expectedLen: 1,
+		},
+		{
+			name:        "Partial overlap: Search starts while ride is active",
+			startDate:   "2024-01-01T15:00:00", // Ride 1 expires 16:00
+			endDate:     "2024-01-01T17:00:00",
+			expectedLen: 1,
+		},
+		{
+			name:        "Partial overlap: Ride starts while search window is active",
+			startDate:   "2024-02-01T08:00:00",
+			endDate:     "2024-02-01T11:00:00", // Ride 2 starts 10:00
+			expectedLen: 1,
+		},
+		{
+			name:        "Search window entirely after ride",
+			startDate:   "2024-01-02",
+			endDate:     "2024-01-03",
+			expectedLen: 0,
 		},
 	}
 

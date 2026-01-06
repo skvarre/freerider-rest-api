@@ -30,11 +30,11 @@ func FetchTrips() ([]Trip, error) {
 		for _, trip := range route.Routes {
 
 			allTrips = append(allTrips, Trip{
-				RideID:    trip.ID,
-				From:      route.PickupLocationName,
-				To:        route.ReturnLocationName,
-				StartDate: formatDate(trip.AvailableAt),
-				EndDate:   formatDate(trip.ExpireTime),
+				RideID:        trip.ID,
+				From:          route.PickupLocationName,
+				To:            route.ReturnLocationName,
+				AvailableFrom: formatDate(trip.AvailableAt),
+				Expires:       formatDate(trip.ExpireTime),
 			})
 		}
 	}
